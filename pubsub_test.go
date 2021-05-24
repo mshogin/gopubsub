@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mshogin/gopubsub"
-	"github.com/stretchr/testify/assert"
+	_ "github.com/mshogin/gopubsub"
+	"github.com/stretchr/testify/require"
 	"gocloud.dev/pubsub"
 )
 
@@ -20,34 +20,33 @@ type (
 )
 
 func TestPubsub(t *testing.T) {
-	s := assert.New(t)
-	gopubsub.Init()
+	s := require.New(t)
 
-	topicName := "test topic"
+	topicName := "testtopic"
 
-	top, err := gopubsub.OpenTopic(context.Background(), topicName)
+	top, err := pubsub.OpenTopic(context.Background(), "local://"+topicName)
 	s.NoError(err)
 	s.NotNil(top)
 
-	s.NoError(top.(sender).Send(context.Background(), &pubsub.Message{Body: []byte("test message")}))
+	s.NoError(top.Send(context.Background(), &pubsub.Message{Body: []byte("test message")}))
 
-	sub, err := gopubsub.OpenSubscription(context.Background(), topicName)
+	sub, err := pubsub.OpenSubscription(context.Background(), "local://"+topicName)
 	s.NoError(err)
 	s.NotNil(sub)
 
 	cnt := 3
 	for i := 0; i < cnt; i++ {
-		s.NoError(top.(sender).Send(context.Background(), &pubsub.Message{Body: []byte("test message")}))
+		s.NoError(top.Send(context.Background(), &pubsub.Message{Body: []byte("test message")}))
 	}
 
 	for i := 0; i < cnt; i++ {
-		msg, err := sub.(receiver).Receive(context.Background())
+		msg, err := sub.Receive(context.Background())
 		s.NoError(err)
 		s.NotNil(msg)
 		s.Equal([]byte("test message"), msg.Body)
 	}
 
 	// no messages and timeout
-	_, err = sub.(receiver).Receive(context.Background())
+	_, err = sub.Receive(context.Background())
 	s.Error(err)
 }

@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gocloud.dev/gcerrors"
 	"gocloud.dev/pubsub"
+	"gocloud.dev/pubsub/driver"
 )
 
 type topic struct {
@@ -19,7 +21,7 @@ type topic struct {
 var topics = make(map[string]*topic)
 var topicsSync sync.Mutex
 
-func OpenTopic(ctx context.Context, topicName string) (interface{}, error) {
+func openTopic(ctx context.Context, topicName string) (*topic, error) {
 	topicsSync.Lock()
 	defer topicsSync.Unlock()
 	if topics[topicName] == nil {
@@ -31,10 +33,21 @@ func OpenTopic(ctx context.Context, topicName string) (interface{}, error) {
 	return topics[topicName], nil
 }
 
-func (m *topic) Send(ctx context.Context, msg *pubsub.Message) (err error) {
+func (m *topic) SendBatch(ctx context.Context, msgs []*driver.Message) error {
 	m.subsSync.RLock()
 	defer m.subsSync.RUnlock()
 
+	for idx, msg := range msgs {
+		if err := m.send(ctx, &pubsub.Message{
+			Body: msg.Body,
+		}); err != nil {
+			return fmt.Errorf("cannot send message #%d; messages count: %d: %w", idx, len(msgs), err)
+		}
+	}
+	return nil
+}
+
+func (m *topic) send(ctx context.Context, msg *pubsub.Message) (err error) {
 	wg := sync.WaitGroup{}
 	wg.Add(len(m.subs))
 	for _, s := range m.subs {
@@ -45,7 +58,7 @@ func (m *topic) Send(ctx context.Context, msg *pubsub.Message) (err error) {
 			running := true
 			for running {
 				select {
-				case s.C <- msg:
+				case s.C <- &driver.Message{Body: msg.Body}:
 					running = false
 				case <-c.Done():
 					running = false
@@ -61,6 +74,39 @@ func (m *topic) Send(ctx context.Context, msg *pubsub.Message) (err error) {
 	}
 	wg.Wait()
 	return
+}
+
+// Close implements io.Closer.
+func (t *topic) Close() error {
+	return nil
+}
+
+// IsRetryable implements driver.Topic.IsRetryable.
+func (t *topic) IsRetryable(error) bool {
+	return false
+}
+
+// As implements driver.Topic.As.
+func (t *topic) As(i interface{}) bool {
+	panic("not sure what for it is")
+	// if p, ok := i.(*sarama.SyncProducer); ok {
+	// 	*p = t.producer
+	// 	return true
+	// }
+	// return false
+}
+
+// ErrorAs implements driver.Topic.ErrorAs.
+func (t *topic) ErrorAs(err error, i interface{}) bool {
+	panic("not sure what for it is")
+	// return errorAs(err, i)
+}
+
+// ErrorCode implements driver.Topic.ErrorCode.
+func (t *topic) ErrorCode(err error) gcerrors.ErrorCode {
+	panic("not sure what for it is")
+
+	// return errorCode(err)
 }
 
 func (m *topic) add(s subscription) func() {
