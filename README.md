@@ -18,7 +18,7 @@ import (
     "context"
 
     "gocloud.dev/pubsub"
-	_ "github.com/mshogin/gopubsub" // driver
+    _ "github.com/mshogin/gopubsub" // driver
 )
 ...
 ctx := context.Background()
@@ -48,7 +48,7 @@ import (
     "context"
 
     "gocloud.dev/pubsub"
-	_ "github.com/mshogin/gopubsub" // driver
+    _ "github.com/mshogin/gopubsub" // driver
 )
 ...
 ctx := context.Background()
