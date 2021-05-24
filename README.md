@@ -1,4 +1,4 @@
-# `gopubsub`, `in-memory` driver for the gocloud.dev/pubsub
+`in-memory` driver for the gocloud.dev/pubsub
 
 [GoPubSub](https://github.com/mshogin/gopubsub)
 
