@@ -1,13 +1,16 @@
-# `gopubsub`, the in-app publish/subscribe system.
+# `gopubsub`, local driver for the gocloud.dev/pubsub
 
 [GoPubSub](https://github.com/mshogin/gopubsub)
 
-`gopubsub` implements interface of `gocloud.dev/pubsub` allows to develop a pubsub based applications
-in local environment without interacting with the real pubsub services like kafka, google pubsub, etc
+`gopubsub` implements `gocloud.dev/pubsub/driver` interface and
+provides the ability to use in-memory pubsub system.
+That allows quickly switch from prod systems like kafka, gcppubsub, etc to the in-memory system. That brings a productivity boost in the development process.
 
-## Quick start
+## Documentation
 
-Taken from https://gocloud.dev/howto/pubsub/publish/#kafka
+See documentation about pubsub on https://gocloud.dev/howto/pubsub/
+
+## Driver: Quick start
 
 ### Sending the message
 ```golang
