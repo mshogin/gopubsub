@@ -2,8 +2,6 @@ package gopubsub
 
 import (
 	"context"
-	"errors"
-	"time"
 
 	"github.com/google/uuid"
 	"gocloud.dev/gcerrors"
@@ -30,22 +28,17 @@ func OpenSubscription(ctx context.Context, topicName string) (*subscription, err
 }
 
 func (m subscription) ReceiveBatch(ctx context.Context, n int) ([]*driver.Message, error) {
-	c, cancel := context.WithTimeout(ctx, 10*time.Millisecond)
-	defer cancel()
+	// c, cancel := context.WithTimeout(ctx, 10*time.Millisecond)
+	// defer cancel()
 	for {
 		select {
-		case <-c.Done():
-			return nil, errors.New("receive message timeout")
+		// case <-c.Done():
+		// 	return nil, errors.New("receive message timeout")
 		case dm := <-m.C:
 			return []*driver.Message{dm}, nil
 		}
 	}
 }
-
-// func (m subscription) Shutdown(context.Context) error {
-// 	m.unsubscribe()
-// 	return nil
-// }
 
 // As implements driver.Subscription.As.
 func (s *subscription) As(i interface{}) bool {
