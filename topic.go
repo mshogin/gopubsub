@@ -12,6 +12,12 @@ import (
 	"gocloud.dev/pubsub/driver"
 )
 
+type ErrorCode = gcerrors.ErrorCode
+
+const (
+	PubsubLocal = 1001
+)
+
 type topic struct {
 	name     string
 	subs     map[uuid.UUID]subscription
@@ -104,9 +110,8 @@ func (t *topic) ErrorAs(err error, i interface{}) bool {
 
 // ErrorCode implements driver.Topic.ErrorCode.
 func (t *topic) ErrorCode(err error) gcerrors.ErrorCode {
-	panic("not sure what for it is")
-
-	// return errorCode(err)
+	fmt.Printf("pubsub local: %s", err)
+	return PubsubLocal
 }
 
 func (m *topic) add(s subscription) func() {
